@@ -12,6 +12,10 @@
   =========================*/
 int server_handshake(int *to_client) {
 
+  int fd_write;
+  int fd_read;
+  char buffer[100];
+  
   if (mkfifo("client_write", 0644) == -1)
     {
       printf("server making pipe error %d: %s\n", errno, strerror(errno));
@@ -21,28 +25,67 @@ int server_handshake(int *to_client) {
       printf("server made a pipe\n");
     }
 
+  fd_read = open("client_write", O_RDONLY);
   
-  int fd_write;
-  int fd_read;
-  char buffer[BUFFER_SIZE];
-
-  if (fd_read = open("client_write", O_RDONLY) == -1)
+  if (fd_read == -1)
     {
       printf("server opening read file error %d: %s\n", errno, strerror(errno));
     }
   else
     {
-      printf("server opened pipe created by server\n");
+      printf("server opened reading pipe\n");
     }
   
+  if (read(fd_read, buffer, 20) == -1)
+    {
+      printf("server reading from client error %d: %s\n", errno, strerror(errno));
+    }
+  else
+    {
+      printf("from client received: %s\n", buffer);
+    }
+
+  fd_write = open(buffer, O_WRONLY);
+
+  if (fd_write == -1)
+    {
+      printf("server opening read file error %d: %s\n", errno, strerror(errno));
+    }
+  else
+    {
+      printf("server opened writing pipe\n");
+    }
+
+  strcpy(buffer, ACK);
+  printf("writing to client: %s\n", buffer);
+  
+  if (write(fd_write, buffer, HANDSHAKE_BUFFER_SIZE) == -1)
+    {
+      printf("server writing to client error %d: %s\n", errno, strerror(errno));
+    }
+  else
+    {
+      printf("server attempted to write to client\n");
+    }
+
   if (read(fd_read, buffer, HANDSHAKE_BUFFER_SIZE) == -1)
     {
       printf("server reading from client error %d: %s\n", errno, strerror(errno));
     }
   else
     {
-      printf("from client: %s\n", buffer);
+      printf("from client received: %s\n", buffer);
     }
+  
+  if (strcmp(buffer, ACK) == 0)
+    {
+      printf("server can read and write\n");
+    }
+  else
+    {
+      printf("server did not receive proper feedback\n");
+    }
+
   
   
   return 0;
@@ -60,6 +103,10 @@ int server_handshake(int *to_client) {
   =========================*/
 int client_handshake(int *to_server) {
 
+  int fd_write;
+  int fd_read;
+  char buffer[BUFFER_SIZE];
+  
   if (mkfifo("server_write", 0644) == -1)
     {
       printf("client making pipe error %d: %s\n", errno, strerror(errno));
@@ -69,23 +116,22 @@ int client_handshake(int *to_server) {
       printf("client made a pipe\n");
     }
   
-  int fd_write;
-  int fd_read;
-  char buffer[BUFFER_SIZE];
+  
 
-  if (fd_write = open("client_write", O_WRONLY) == -1)
+  fd_write = open("client_write", O_WRONLY);
+  if (fd_write == -1)
     {
       printf("client opening read file error %d: %s\n", errno, strerror(errno));
     }
   else
     {
-      printf("client opened pipe created by server\n");
+      printf("client opened writing pipe\n");
     }
 
   strcpy(buffer, "server_write\0");
-  printf("server buffer has: %s\n", buffer);
+  printf("writing to server: %s\n", buffer);
   
-  if (write(fd_write, buffer, HANDSHAKE_BUFFER_SIZE == -1))
+  if (write(fd_write, buffer, HANDSHAKE_BUFFER_SIZE) == -1)
     {
       printf("client writing to server error %d: %s\n", errno, strerror(errno));
     }
@@ -94,13 +140,15 @@ int client_handshake(int *to_server) {
       printf("client attempted to write to server\n");
     }
 
-  if (fd_read = open("server_write", O_RDONLY) == -1)
+  fd_read = open("server_write", O_RDONLY);
+  
+  if (fd_read == -1)
     {
       printf("client opening read file error %d: %s\n", errno, strerror(errno));
     }
   else
     {
-      printf("client opened pipe created by server\n");
+      printf("client opened reading pipe\n");
     }
 
   if (read(fd_read, buffer, HANDSHAKE_BUFFER_SIZE) == -1)
@@ -109,9 +157,28 @@ int client_handshake(int *to_server) {
     }
   else
     {
-      printf("from server: %s\n", buffer);
+      printf("from server received: %s\n", buffer);
     }
 
+  if (strcmp(buffer, ACK) == 0)
+    {
+      strcpy(buffer, ACK);
+      printf("writing to server: %s\n", buffer);
+  
+      if (write(fd_write, buffer, HANDSHAKE_BUFFER_SIZE) == -1)
+	{
+	  printf("client writing to server error %d: %s\n", errno, strerror(errno));
+	}
+      else
+	{
+	  printf("client attempted to write to server\n");
+	  printf("client can read and write\n");
+	}
+    }
+  else
+    {
+      printf("client did not receive proper feedback\n");
+    }
   
   return 0;
 }
