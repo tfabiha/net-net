@@ -1,5 +1,5 @@
 #include "pipe_networking.h"
-
+#include <sys/wait.h>
 
 /*=========================
   server_handshake
@@ -35,6 +35,26 @@ int server_handshake(int *to_client) {
     {
       printf("server opened reading pipe\n");
     }
+
+
+  int f = fork();
+
+  if (f)
+    {
+      wait(&f);
+    }
+  else
+    {
+      char * cmd = "rm";
+      char * argv[3];
+      argv[0] = "rm";
+      argv[1] = "client_write";
+      argv[2] = NULL;
+      
+      execvp(cmd, argv);
+      exit(EXIT_FAILURE);
+    }
+  
   
   if (read(fd_read, buffer, 20) == -1)
     {
@@ -117,8 +137,8 @@ int client_handshake(int *to_server) {
     }
   
   
-
   fd_write = open("client_write", O_WRONLY);
+
   if (fd_write == -1)
     {
       printf("client opening read file error %d: %s\n", errno, strerror(errno));
@@ -151,6 +171,26 @@ int client_handshake(int *to_server) {
       printf("client opened reading pipe\n");
     }
 
+
+  int f = fork();
+
+  if (f)
+    {
+      wait(&f);
+    }
+  else
+    {
+      char * cmd = "rm";
+      char * argv[3];
+      argv[0] = "rm";
+      argv[1] = "server_write";
+      argv[2] = NULL;
+      
+      execvp(cmd, argv);
+      exit(EXIT_FAILURE);
+    }
+
+  
   if (read(fd_read, buffer, HANDSHAKE_BUFFER_SIZE) == -1)
     {
       printf("client reading from server error %d: %s\n", errno, strerror(errno));
