@@ -16,3 +16,4 @@ clean:
 	rm server
 	rm client
 	rm client_write
+	rm server_write
