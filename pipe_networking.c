@@ -86,9 +86,9 @@ int server_handshake(int *to_client) {
       printf("server did not receive proper feedback\n");
     }
 
+  * to_client = fd_write;
   
-  
-  return 0;
+  return fd_read;
 }
 
 
@@ -179,6 +179,7 @@ int client_handshake(int *to_server) {
     {
       printf("client did not receive proper feedback\n");
     }
-  
-  return 0;
+
+  * to_server = fd_write;
+  return fd_read;
 }
