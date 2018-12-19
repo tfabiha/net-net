@@ -15,4 +15,4 @@ clean:
 	rm *.o
 	rm server
 	rm client
-	rm *_write
+
